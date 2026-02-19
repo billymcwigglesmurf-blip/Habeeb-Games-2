@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -31,48 +30,12 @@ export interface Game {
 // --- DATA ---
 const GAMES_DATA: Game[] = [
   {
-    id: 'slope',
-    title: 'Slope',
-    description: 'A fast-paced 3D running game where you navigate a ball through a futuristic neon city while avoiding obstacles and falling off the edge.',
-    category: GameCategory.ARCADE,
-    thumbnail: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: 'https://plain.slope.run/',
-    isHot: true
-  },
-  {
-    id: '2048',
-    title: '2048',
-    description: 'Join the numbers and get to the 2048 tile! A classic addictive puzzle game that requires strategy and foresight.',
-    category: GameCategory.PUZZLE,
-    thumbnail: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: 'https://2048game.com/',
-    isHot: false
-  },
-  {
-    id: 'minecraft-classic',
-    title: 'Minecraft Classic',
-    description: 'The original creative building game. Play the classic version of Minecraft in your browser with up to 9 friends.',
-    category: GameCategory.CLASSIC,
-    thumbnail: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: 'https://classic.minecraft.net/',
-    isHot: true
-  },
-  {
-    id: 'cookie-clicker',
-    title: 'Cookie Clicker',
-    description: 'The ultimate idle game. Bake billions of cookies by clicking and hiring grandmas, building farms, and more.',
-    category: GameCategory.ARCADE,
-    thumbnail: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: 'https://orteil.dashnet.org/cookieclicker/',
-    isHot: false
-  },
-  {
-    id: 'vex-3',
-    title: 'Vex 3',
-    description: 'A challenging platformer where you must jump, climb, and slide your way through dangerous levels filled with traps.',
+    id: 'house-of-hazards',
+    title: 'House of Hazards',
+    description: 'Complete household chores while dodging ridiculous traps set by your opponents! A hilarious physics-based multiplayer challenge where everything in the house is out to get you.',
     category: GameCategory.ACTION,
-    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: 'https://vex3.io/',
+    thumbnail: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop',
+    iframeUrl: '/files/houseofhazards/index.html',
     isHot: true
   }
 ];
@@ -85,7 +48,8 @@ interface NavbarProps {
   onHomeClick: () => void;
 }
 
-const Navbar = ({ onSearch, onHomeClick }: NavbarProps) => {
+// Fixed Navbar using React.FC
+const Navbar: React.FC<NavbarProps> = ({ onSearch, onHomeClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProxySuccess, setShowProxySuccess] = useState(false);
@@ -163,8 +127,8 @@ interface GameCardProps {
   onClick: (game: Game) => void;
 }
 
-// Added explicit prop types to resolve "key" property assignment error when used in filteredGames.map
-const GameCard = ({ game, onClick }: GameCardProps) => (
+// Fixed GameCard by using React.FC to explicitly support 'key' prop in map iterators
+const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => (
   <div onClick={() => onClick(game)} className="group relative bg-slate-800/40 rounded-2xl overflow-hidden border border-slate-700/50 hover:border-red-500/50 transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-2xl hover:shadow-red-500/10">
     <div className="aspect-video relative overflow-hidden">
       <img src={game.thumbnail} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -193,7 +157,8 @@ interface GamePlayerProps {
   onBack: () => void;
 }
 
-const GamePlayer = ({ game, onBack }: GamePlayerProps) => {
+// Fixed GamePlayer using React.FC
+const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
   const [isMuted, setIsMuted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const toggleFullscreen = () => {
@@ -203,7 +168,6 @@ const GamePlayer = ({ game, onBack }: GamePlayerProps) => {
     }
   };
   const reloadGame = () => {
-    // Cast to HTMLIFrameElement to fix 'src' property access error on line 187
     const iframe = document.getElementById('game-iframe') as HTMLIFrameElement;
     if (iframe) iframe.src = iframe.src;
   };
@@ -229,7 +193,8 @@ const GamePlayer = ({ game, onBack }: GamePlayerProps) => {
   );
 };
 
-const Footer = () => (
+// Fixed Footer using React.FC
+const Footer: React.FC = () => (
   <footer className="bg-slate-950 border-t border-slate-800 pt-16 pb-8 px-4">
     <div className="max-w-7xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -262,7 +227,8 @@ const Footer = () => (
 );
 
 // --- MAIN APP ---
-const App = () => {
+// Fixed App using React.FC
+const App: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<GameCategory | 'All'>('All');
@@ -301,6 +267,17 @@ const App = () => {
                 <GameCard key={game.id} game={game} onClick={setSelectedGame} />
               ))}
             </div>
+            {filteredGames.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="bg-slate-900 p-8 rounded-full mb-6">
+                  <Filter className="w-12 h-12 text-slate-700" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">No games found</h3>
+                <p className="text-slate-500 max-w-xs">
+                  The database is currently empty.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </main>
