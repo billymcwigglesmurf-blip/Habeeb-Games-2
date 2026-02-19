@@ -5,7 +5,7 @@ import Navbar from './components/Navbar.tsx';
 import GameCard from './components/GameCard.tsx';
 import GamePlayer from './components/GamePlayer.tsx';
 import Footer from './components/Footer.tsx';
-import { LayoutGrid, Filter, Trophy, Zap, Clock } from 'lucide-react';
+import { LayoutGrid, Filter, Trophy, Clock } from 'lucide-react';
 
 const App: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<GameCategory | 'All'>('All');
 
   const filteredGames = useMemo(() => {
-    return GAMES_DATA.filter(game => {
+    return (GAMES_DATA || []).filter(game => {
       const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = activeCategory === 'All' || game.category === activeCategory;
       return matchesSearch && matchesCategory;
@@ -122,7 +122,7 @@ const App: React.FC = () => {
                   </div>
                 </section>
 
-                {!searchTerm && activeCategory === 'All' && (
+                {!searchTerm && activeCategory === 'All' && GAMES_DATA.some(g => g.category === GameCategory.CLASSIC) && (
                   <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8">
                     <div className="flex items-center gap-3 mb-8">
                        <div className="bg-red-500/20 p-2 rounded-lg">
@@ -155,7 +155,7 @@ const App: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">No games found</h3>
                 <p className="text-slate-500 max-w-xs">
-                  We couldn't find any games matching your current filters or search term.
+                  We couldn't find any games matching your current filters or search term. The database might be empty.
                 </p>
                 <button 
                   onClick={() => {setSearchTerm(''); setActiveCategory('All')}}
