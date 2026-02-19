@@ -1,0 +1,30 @@
+
+[
+  {
+    "id": "house-of-hazards",
+    "title": "House of Hazards",
+    "description": "Complete household chores while dodging ridiculous traps set by your opponents! A hilarious physics-based multiplayer challenge.",
+    "category": "Action",
+    "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "./files/houseofhazards/index.html",
+    "isHot": true
+  },
+  {
+    "id": "retro-arcade",
+    "title": "Retro Arcade",
+    "description": "A collection of classic arcade spirits in one place. Jump, dodge, and score high!",
+    "category": "Classic",
+    "thumbnail": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "./files/retro/index.html",
+    "isHot": false
+  },
+  {
+    "id": "puzzle-master",
+    "title": "Puzzle Master",
+    "description": "Test your logic and spatial reasoning with increasingly difficult puzzles.",
+    "category": "Puzzle",
+    "thumbnail": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "./files/puzzle/index.html",
+    "isHot": false
+  }
+]

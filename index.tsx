@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   Search, Menu, X, Rocket, ShieldCheck, Play, Flame, 
@@ -21,34 +22,19 @@ export interface Game {
   id: string;
   title: string;
   description: string;
-  category: GameCategory;
+  category: string;
   thumbnail: string;
   iframeUrl: string;
   isHot?: boolean;
 }
 
-// --- DATA ---
-const GAMES_DATA: Game[] = [
-  {
-    id: 'house-of-hazards',
-    title: 'House of Hazards',
-    description: 'Complete household chores while dodging ridiculous traps set by your opponents! A hilarious physics-based multiplayer challenge where everything in the house is out to get you.',
-    category: GameCategory.ACTION,
-    thumbnail: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop',
-    iframeUrl: '/files/houseofhazards/index.html',
-    isHot: true
-  }
-];
-
 // --- COMPONENTS ---
 
-// Define Props interface for Navbar
 interface NavbarProps {
   onSearch: (term: string) => void;
   onHomeClick: () => void;
 }
 
-// Fixed Navbar using React.FC
 const Navbar: React.FC<NavbarProps> = ({ onSearch, onHomeClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -105,7 +91,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onHomeClick }) => {
           </div>
         </div>
         <div className="hidden md:flex items-center gap-6">
-          <button className="text-slate-300 hover:text-white font-medium transition-colors">Categories</button>
           <div className="relative">
             <button onClick={handleProxyMode} className="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-full font-semibold transition-all shadow-lg shadow-red-600/20 flex items-center gap-2 active:scale-95">
               <ShieldCheck className="w-4 h-4" /> Proxy Mode
@@ -121,13 +106,11 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onHomeClick }) => {
   );
 };
 
-// Define Props interface for GameCard
 interface GameCardProps {
   game: Game;
   onClick: (game: Game) => void;
 }
 
-// Fixed GameCard by using React.FC to explicitly support 'key' prop in map iterators
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => (
   <div onClick={() => onClick(game)} className="group relative bg-slate-800/40 rounded-2xl overflow-hidden border border-slate-700/50 hover:border-red-500/50 transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-2xl hover:shadow-red-500/10">
     <div className="aspect-video relative overflow-hidden">
@@ -151,15 +134,12 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => (
   </div>
 );
 
-// Define Props interface for GamePlayer
 interface GamePlayerProps {
   game: Game;
   onBack: () => void;
 }
 
-// Fixed GamePlayer using React.FC
 const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
-  const [isMuted, setIsMuted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const toggleFullscreen = () => {
     if (containerRef.current) {
@@ -180,12 +160,11 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={reloadGame} title="Reload Game" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"><RotateCcw className="w-5 h-5" /></button>
-          <button onClick={() => setIsMuted(!isMuted)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">{isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
           <button onClick={toggleFullscreen} className="bg-red-600 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg shadow-red-600/20"><Maximize2 className="w-5 h-5" /></button>
         </div>
       </div>
-      <div className="flex-1 flex flex-col md:flex-row bg-black overflow-hidden relative">
-        <div ref={containerRef} className="flex-1 relative bg-slate-950 flex items-center justify-center">
+      <div className="flex-1 bg-black overflow-hidden relative">
+        <div ref={containerRef} className="w-full h-full relative bg-slate-950 flex items-center justify-center">
           <iframe id="game-iframe" src={game.iframeUrl} className="w-full h-full border-0 bg-white" allowFullScreen loading="lazy" title={game.title} />
         </div>
       </div>
@@ -193,7 +172,6 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
   );
 };
 
-// Fixed Footer using React.FC
 const Footer: React.FC = () => (
   <footer className="bg-slate-950 border-t border-slate-800 pt-16 pb-8 px-4">
     <div className="max-w-7xl mx-auto">
@@ -204,14 +182,6 @@ const Footer: React.FC = () => (
             <span className="text-2xl font-black font-outfit tracking-tight text-white">HABEEB <span className="text-red-400">GAMES</span></span>
           </div>
           <p className="text-slate-400 max-w-sm mb-8 leading-relaxed">The ultimate unblocked gaming destination. High speed, no lags, and always free to play.</p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="p-3 bg-slate-900 text-slate-400 hover:text-white rounded-full transition-all hover:bg-red-600"><Twitter className="w-5 h-5" /></a>
-            <a href="#" className="p-3 bg-slate-900 text-slate-400 hover:text-white rounded-full transition-all hover:bg-red-600"><Github className="w-5 h-5" /></a>
-          </div>
-        </div>
-        <div>
-          <h4 className="text-white font-bold mb-6 text-lg">Platform</h4>
-          <ul className="space-y-4 text-slate-400"><li><a href="#" className="hover:text-red-400">Trending</a></li><li><a href="#" className="hover:text-red-400">New Games</a></li></ul>
         </div>
         <div>
           <h4 className="text-white font-bold mb-6 text-lg">Support</h4>
@@ -220,26 +190,44 @@ const Footer: React.FC = () => (
       </div>
       <div className="pt-8 border-t border-slate-900 text-center md:text-left md:flex md:items-center md:justify-between text-slate-500 text-sm">
         <p>© 2026 Habeeb Games. Built for students, by students.</p>
-        <div>Managed by the community.</div>
       </div>
     </div>
   </footer>
 );
 
-// --- MAIN APP ---
-// Fixed App using React.FC
 const App: React.FC = () => {
+  const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState<GameCategory | 'All'>('All');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Relative path for GitHub Pages compatibility
+    fetch('./games.json')
+      .then(res => res.json())
+      .then(data => {
+        setGames(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load games:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const filteredGames = useMemo(() => {
-    return GAMES_DATA.filter(game => {
+    return games.filter(game => {
       const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = activeCategory === 'All' || game.category === activeCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, activeCategory]);
+  }, [games, searchTerm, activeCategory]);
+
+  const categories = useMemo(() => {
+    const cats = new Set(games.map(g => g.category));
+    return ['All', ...Array.from(cats)];
+  }, [games]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-200">
@@ -253,29 +241,29 @@ const App: React.FC = () => {
               <div className="relative z-10 max-w-2xl">
                 <h1 className="text-6xl font-black font-outfit text-white mb-4 leading-tight">Play Without <span className="text-orange-200">Boundaries.</span></h1>
                 <p className="text-red-100 text-xl mb-8 opacity-90 max-w-lg">Access the web's best unblocked games. No downloads, no lag, just pure gaming fun.</p>
-                <button className="bg-white text-red-600 px-8 py-4 rounded-2xl font-bold hover:bg-red-50 transition-all transform hover:-translate-y-1 shadow-xl">Explore Games</button>
               </div>
             </header>
             <div className="flex items-center gap-4 overflow-x-auto pb-6 mb-8 scrollbar-hide">
-              <button onClick={() => setActiveCategory('All')} className={`px-6 py-2.5 rounded-full font-semibold transition-all ${activeCategory === 'All' ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'}`}>All Games</button>
-              {Object.values(GameCategory).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat as GameCategory)} className={`px-6 py-2.5 rounded-full font-semibold transition-all ${activeCategory === cat ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'}`}>{cat}</button>
+              {categories.map(cat => (
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-6 py-2.5 rounded-full font-semibold transition-all whitespace-nowrap ${activeCategory === cat ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'}`}>{cat}</button>
               ))}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredGames.map(game => (
-                <GameCard key={game.id} game={game} onClick={setSelectedGame} />
-              ))}
-            </div>
-            {filteredGames.length === 0 && (
+            
+            {loading ? (
+              <div className="text-center py-20 text-slate-500">Loading catalog...</div>
+            ) : filteredGames.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredGames.map(game => (
+                  <GameCard key={game.id} game={game} onClick={setSelectedGame} />
+                ))}
+              </div>
+            ) : (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="bg-slate-900 p-8 rounded-full mb-6">
                   <Filter className="w-12 h-12 text-slate-700" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">No games found</h3>
-                <p className="text-slate-500 max-w-xs">
-                  The database is currently empty.
-                </p>
+                <p className="text-slate-500 max-w-xs">Try adjusting your filters or search term.</p>
               </div>
             )}
           </div>
