@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- Babel is required to transpile TSX directly in the browser for static hosts like GitHub Pages -->
     <script src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"></script>
     
     <style>
@@ -22,26 +21,15 @@
         .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-        /* Hide root until React is ready to prevent flash of unstyled content */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
         #root:empty::before {
             content: "LOADING HABEEB GAMES...";
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Outfit', sans-serif;
             font-weight: 900;
@@ -55,15 +43,15 @@
             50% { opacity: 0.5; }
         }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@19.0.0",
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "lucide-react": "https://esm.sh/lucide-react@0.475.0",
-    "react-dom/": "https://esm.sh/react-dom@19.0.0/",
-    "react/": "https://esm.sh/react@19.0.0/"
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
@@ -71,15 +59,36 @@
 <body>
     <div id="root"></div>
     
-    <!-- 
-      Using type="text/babel" and data-type="module" allows Babel to handle the .tsx file
-      and then execute the resulting code as an ES module, bypassing MIME type issues.
-    -->
-    <script 
-      type="text/babel" 
-      data-type="module" 
-      data-presets="typescript,react"
-      src="index.tsx"
-    ></script>
+    <script type="text/babel" data-presets="typescript,react">
+      // Manual loader to bypass MIME type issues on GitHub Pages
+      (async () => {
+        try {
+          const response = await fetch('./index.tsx');
+          if (!response.ok) throw new Error('Failed to load index.tsx');
+          const code = await response.text();
+          
+          // Transpile the fetched TSX code
+          const transformed = Babel.transform(code, {
+            presets: ['typescript', 'react'],
+            filename: 'index.tsx'
+          }).code;
+
+          // Execute the transpiled code as a module
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.text = transformed;
+          document.body.appendChild(script);
+        } catch (err) {
+          console.error('Habeeb Games Loader Error:', err);
+          document.getElementById('root').innerHTML = `
+            <div style="color: white; text-align: center; padding: 50px;">
+              <h2 style="color: #ef4444;">Failed to load Habeeb Games</h2>
+              <p>${err.message}</p>
+              <button onclick="location.reload()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Retry</button>
+            </div>
+          `;
+        }
+      })();
+    </script>
 </body>
 </html>
