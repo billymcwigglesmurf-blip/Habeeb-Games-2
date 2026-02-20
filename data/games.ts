@@ -45,5 +45,14 @@ export const GAMES_DATA: Game[] = [
     "thumbnail": "https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=800&auto=format&fit=crop",
     "iframeUrl": "https://grand-action-simulator-new-york-car-gang.game-files.crazygames.com/unity/unity56/grand-action-simulator-new-york-car-gang.html?isNewUser=false&skipPrerollFirstSession=true&v=1.351",
     "isHot": true
+  },
+  {
+    "id": "jelly-mario",
+    "title": "Jelly Mario",
+    "description": "A surreal reimagining of the classic platformer where everything—Mario, enemies, and even the blocks—behaves like jelly. Bounce, stretch, and wiggle your way through the Mushroom Kingdom.",
+    "category": GameCategory.ARCADE,
+    "thumbnail": "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://jellymar.io/",
+    "isHot": true
   }
 ];
