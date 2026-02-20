@@ -14,20 +14,20 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
+            background-color: #020617;
             color: #f8fafc;
             margin: 0;
+            overflow-x: hidden;
         }
         .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
         
         #root:empty::before {
-            content: "LOADING HABEEB GAMES...";
+            content: "SYSTEM_BOOTING...";
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -35,12 +35,12 @@
             font-weight: 900;
             color: #ef4444;
             font-size: 1.2rem;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.3em;
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.95); }
         }
     </style>
     <script type="importmap">
@@ -50,8 +50,8 @@
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "lucide-react": "https://esm.sh/lucide-react@0.475.0",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/"
   }
 }
 </script>
@@ -60,31 +60,77 @@
     <div id="root"></div>
     
     <script type="text/babel" data-presets="typescript,react">
-      // Manual loader to bypass MIME type issues on GitHub Pages
       (async () => {
+        const rootEl = document.getElementById('root');
+        
+        async function fetchSource(url) {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Status ${response.status}`);
+          const text = await response.text();
+          if (text.trim().toLowerCase().startsWith('<!doctype') || text.trim().toLowerCase().startsWith('<html')) {
+            throw new Error("Received HTML (likely an error page) instead of source code.");
+          }
+          return text;
+        }
+
+        const getBaseUrl = () => {
+          const path = window.location.pathname;
+          return path.substring(0, path.lastIndexOf('/') + 1);
+        };
+
+        const tryLoad = async () => {
+          const baseUrl = getBaseUrl();
+          // Try multiple path patterns to resolve index.tsx
+          const paths = [
+            'index.tsx',
+            './index.tsx',
+            `${baseUrl}index.tsx`,
+            `${window.location.origin}${baseUrl}index.tsx`,
+            'index.tsx?t=' + Date.now() // Final attempt with cache-buster
+          ];
+
+          let lastError = null;
+          for (const path of paths) {
+            try {
+              console.log(`[BOOT]: Attempting load from ${path}`);
+              const code = await fetchSource(path);
+              return code;
+            } catch (e) {
+              lastError = e;
+              console.warn(`[BOOT]: Failed to load from ${path}: ${e.message}`);
+            }
+          }
+          throw lastError || new Error("All source paths failed.");
+        };
+
         try {
-          const response = await fetch('./index.tsx');
-          if (!response.ok) throw new Error('Failed to load index.tsx');
-          const code = await response.text();
+          const code = await tryLoad();
           
-          // Transpile the fetched TSX code
           const transformed = Babel.transform(code, {
             presets: ['typescript', 'react'],
             filename: 'index.tsx'
           }).code;
 
-          // Execute the transpiled code as a module
           const script = document.createElement('script');
           script.type = 'module';
           script.text = transformed;
           document.body.appendChild(script);
         } catch (err) {
-          console.error('Habeeb Games Loader Error:', err);
-          document.getElementById('root').innerHTML = `
-            <div style="color: white; text-align: center; padding: 50px;">
-              <h2 style="color: #ef4444;">Failed to load Habeeb Games</h2>
-              <p>${err.message}</p>
-              <button onclick="location.reload()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Retry</button>
+          console.error('Habeeb Games Bootstrap Failure:', err);
+          rootEl.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; background: #020617; color: white;">
+              <div style="background: #ef444410; padding: 40px; border-radius: 32px; border: 1px solid #ef444430; max-width: 600px; width: 100%; box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.1);">
+                <div style="background: #ef4444; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h2 style="color: #ef4444; font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.75rem; margin-bottom: 12px; letter-spacing: -0.02em;">BOOT_FAILURE</h2>
+                <p style="color: #94a3b8; font-family: 'Inter', sans-serif; margin-bottom: 32px; line-height: 1.6;">The system was unable to locate its core component (index.tsx). This usually happens if the file is missing or the server pathing is restricted.</p>
+                <div style="background: #000; padding: 20px; border-radius: 16px; font-family: monospace; color: #f87171; font-size: 0.85rem; margin-bottom: 32px; text-align: left; border: 1px solid #ffffff10; overflow-x: auto; white-space: pre-wrap;">
+[TRACE]: ${err.message}
+[LOCATION]: ${window.location.href}
+                </div>
+                <button onclick="location.reload()" style="background: #ef4444; color: white; border: none; padding: 16px 40px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; width: 100%; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">RE-INITIALIZE SYSTEM</button>
+              </div>
             </div>
           `;
         }

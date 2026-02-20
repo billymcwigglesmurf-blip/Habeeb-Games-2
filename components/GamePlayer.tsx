@@ -81,6 +81,7 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
             allowFullScreen
             loading="lazy"
             title={game.title}
+            allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope; microphone; clipboard-read; clipboard-write 'self'"
           />
         </div>
 

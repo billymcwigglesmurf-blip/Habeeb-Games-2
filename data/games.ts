@@ -1,3 +1,49 @@
-import { Game } from '../types.ts';
+import { Game, GameCategory } from '../types.ts';
 
-export const GAMES_DATA: Game[] = [];
+export const GAMES_DATA: Game[] = [
+  {
+    "id": "pac-man",
+    "title": "Pac-Man",
+    "description": "The classic arcade phenomenon, built natively for Habeeb Games. Navigate the maze, eat all the dots, and avoid the ghosts!",
+    "category": GameCategory.CLASSIC,
+    "thumbnail": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "internal:pacman",
+    "isHot": true
+  },
+  {
+    "id": "basket-hoop",
+    "title": "Basket Hoop",
+    "description": "Show off your basketball skills! Aim, shoot, and score in this addictive sports challenge.",
+    "category": GameCategory.SPORTS,
+    "thumbnail": "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://d11jzht7mj96rr.cloudfront.net/games/2024/construct/311/basket-hoop/index-gg.html",
+    "isHot": true
+  },
+  {
+    "id": "cookie-clicker-save-the-world",
+    "title": "Cookie Clicker: Save the World",
+    "description": "Save The World is an interesting Cookie Clicker variation. Click to collect as many cookies as possible and save the world!",
+    "category": GameCategory.ARCADE,
+    "thumbnail": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://games.crazygames.com/en_US/cookie-clicker-save-the-world/index.html?skipPrerollFirstSession=true&v=1.351",
+    "isHot": true
+  },
+  {
+    "id": "dogeminer",
+    "title": "Dogeminer",
+    "description": "The legendary Dogecoin mining simulator! Mine Dogecoin, hire helper pups, buy upgrades, and eventually travel to the moon in this iconic idle clicker game.",
+    "category": GameCategory.ARCADE,
+    "thumbnail": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://dogeminer.se/",
+    "isHot": true
+  },
+  {
+    "id": "grand-action-simulator",
+    "title": "Grand Action Simulator",
+    "description": "A high-stakes action simulator in New York. Steal cars, fight gangs, and dominate the city streets in this open-world crime thriller!",
+    "category": GameCategory.ACTION,
+    "thumbnail": "https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://grand-action-simulator-new-york-car-gang.game-files.crazygames.com/unity/unity56/grand-action-simulator-new-york-car-gang.html?isNewUser=false&skipPrerollFirstSession=true&v=1.351",
+    "isHot": true
+  }
+];
