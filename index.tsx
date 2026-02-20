@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -27,6 +26,323 @@ export interface Game {
   iframeUrl: string;
   isHot?: boolean;
 }
+
+// --- PAC-MAN NATIVE IMPLEMENTATION ---
+const PacManGame: React.FC<{ onGameOver: (score: number) => void }> = ({ onGameOver }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [gameStatus, setGameStatus] = useState<'playing' | 'paused' | 'gameover' | 'win'>('playing');
+
+  // Maze layout: 1=Wall, 0=Dot, 2=Empty, 3=PowerPellet, 4=GhostGate
+  const MAZE = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,3,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,3,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+    [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,0,1,1,1,2,1,2,1,1,1,0,1,1,1,1],
+    [2,2,2,1,0,1,2,2,2,2,2,2,2,1,0,1,2,2,2],
+    [1,1,1,1,0,1,2,1,1,4,1,1,2,1,0,1,1,1,1],
+    [2,2,2,2,0,2,2,1,2,2,2,1,2,2,0,2,2,2,2],
+    [1,1,1,1,0,1,2,1,1,1,1,1,2,1,0,1,1,1,1],
+    [2,2,2,1,0,1,2,2,2,2,2,2,2,1,0,1,2,2,2],
+    [1,1,1,1,0,1,2,1,1,1,1,1,2,1,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,3,0,1,0,0,0,0,0,2,0,0,0,0,0,1,0,3,1],
+    [1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1],
+    [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ];
+
+  const TILE_SIZE = 20;
+  const WIDTH = MAZE[0].length;
+  const HEIGHT = MAZE.length;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let pacman = { x: 9, y: 15, dir: 0, nextDir: 0, speed: 0.15 };
+    let ghosts = [
+      { x: 9, y: 9, color: '#FF0000', dir: 0, state: 'normal' },
+      { x: 8, y: 9, color: '#FFB8FF', dir: 1, state: 'normal' },
+      { x: 10, y: 9, color: '#00FFFF', dir: 2, state: 'normal' },
+      { x: 9, y: 8, color: '#FFB852', dir: 3, state: 'normal' }
+    ];
+    let dots = [];
+    let powerPellets = [];
+    let powerTimer = 0;
+    let localScore = 0;
+    let localLives = 3;
+
+    // Initialize dots from MAZE
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH; x++) {
+        if (MAZE[y][x] === 0) dots.push({ x, y });
+        if (MAZE[y][x] === 3) powerPellets.push({ x, y });
+      }
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp' || e.key === 'w') pacman.nextDir = 3;
+      if (e.key === 'ArrowRight' || e.key === 'd') pacman.nextDir = 0;
+      if (e.key === 'ArrowDown' || e.key === 's') pacman.nextDir = 1;
+      if (e.key === 'ArrowLeft' || e.key === 'a') pacman.nextDir = 2;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    const isWall = (x: number, y: number) => {
+      const tx = Math.floor(x);
+      const ty = Math.floor(y);
+      if (tx < 0 || tx >= WIDTH || ty < 0 || ty >= HEIGHT) return true;
+      return MAZE[ty][tx] === 1 || MAZE[ty][tx] === 4;
+    };
+
+    const update = () => {
+      if (gameStatus !== 'playing') return;
+
+      // Pacman movement logic
+      const tryMove = (d: number) => {
+        let nx = pacman.x, ny = pacman.y;
+        if (d === 0) nx += pacman.speed;
+        if (d === 1) ny += pacman.speed;
+        if (d === 2) nx -= pacman.speed;
+        if (d === 3) ny -= pacman.speed;
+        
+        // Snap to grid when turning
+        if (d === 0 || d === 2) {
+           if (Math.abs(pacman.y - Math.round(pacman.y)) < 0.2) {
+             if (!isWall(nx + (d === 0 ? 0.5 : -0.5), Math.round(pacman.y))) {
+                pacman.x = nx;
+                pacman.y = Math.round(pacman.y);
+                return true;
+             }
+           }
+        } else {
+           if (Math.abs(pacman.x - Math.round(pacman.x)) < 0.2) {
+             if (!isWall(Math.round(pacman.x), ny + (d === 1 ? 0.5 : -0.5))) {
+                pacman.y = ny;
+                pacman.x = Math.round(pacman.x);
+                return true;
+             }
+           }
+        }
+        return false;
+      };
+
+      if (!tryMove(pacman.nextDir)) {
+        tryMove(pacman.dir);
+      } else {
+        pacman.dir = pacman.nextDir;
+      }
+
+      // Wrap around
+      if (pacman.x < 0) pacman.x = WIDTH - 1;
+      if (pacman.x >= WIDTH) pacman.x = 0;
+
+      // Eat dots
+      const px = Math.round(pacman.x);
+      const py = Math.round(pacman.y);
+      const dotIdx = dots.findIndex(d => d.x === px && d.y === py);
+      if (dotIdx !== -1) {
+        dots.splice(dotIdx, 1);
+        localScore += 10;
+        setScore(localScore);
+        if (dots.length === 0) setGameStatus('win');
+      }
+
+      // Eat Power Pellets
+      const ppIdx = powerPellets.findIndex(p => p.x === px && p.y === py);
+      if (ppIdx !== -1) {
+        powerPellets.splice(ppIdx, 1);
+        localScore += 50;
+        setScore(localScore);
+        powerTimer = 600;
+        ghosts.forEach(g => g.state = 'frightened');
+      }
+
+      if (powerTimer > 0) {
+        powerTimer--;
+        if (powerTimer === 0) ghosts.forEach(g => g.state = 'normal');
+      }
+
+      // Ghost movement
+      ghosts.forEach(g => {
+        let gx = g.x, gy = g.y;
+        if (g.dir === 0) gx += 0.08;
+        if (g.dir === 1) gy += 0.08;
+        if (g.dir === 2) gx -= 0.08;
+        if (g.dir === 3) gy -= 0.08;
+
+        if (isWall(gx + (g.dir === 0 ? 0.5 : (g.dir === 2 ? -0.5 : 0)), gy + (g.dir === 1 ? 0.5 : (g.dir === 3 ? -0.5 : 0)))) {
+           g.dir = Math.floor(Math.random() * 4);
+        } else {
+           g.x = gx; g.y = gy;
+        }
+
+        // Wrap around
+        if (g.x < 0) g.x = WIDTH - 1;
+        if (g.x >= WIDTH) g.x = 0;
+
+        // Collision with Pacman
+        const dx = Math.abs(pacman.x - g.x);
+        const dy = Math.abs(pacman.y - g.y);
+        if (dx < 0.5 && dy < 0.5) {
+          if (g.state === 'frightened') {
+            g.x = 9; g.y = 9; g.state = 'normal';
+            localScore += 200;
+            setScore(localScore);
+          } else {
+            localLives--;
+            setLives(localLives);
+            if (localLives <= 0) {
+              setGameStatus('gameover');
+            } else {
+              pacman = { x: 9, y: 15, dir: 0, nextDir: 0, speed: 0.15 };
+            }
+          }
+        }
+      });
+    };
+
+    const draw = () => {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Maze
+      MAZE.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          if (cell === 1) {
+            ctx.fillStyle = '#1e40af';
+            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+          } else if (cell === 4) {
+            ctx.fillStyle = '#f87171';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE/2 - 2, TILE_SIZE, 4);
+          }
+        });
+      });
+
+      // Draw Dots
+      ctx.fillStyle = '#ffb8ae';
+      dots.forEach(d => {
+        ctx.beginPath();
+        ctx.arc(d.x * TILE_SIZE + TILE_SIZE/2, d.y * TILE_SIZE + TILE_SIZE/2, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw Power Pellets
+      powerPellets.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x * TILE_SIZE + TILE_SIZE/2, p.y * TILE_SIZE + TILE_SIZE/2, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw Pacman
+      ctx.fillStyle = '#ffff00';
+      ctx.beginPath();
+      const pcX = pacman.x * TILE_SIZE + TILE_SIZE/2;
+      const pcY = pacman.y * TILE_SIZE + TILE_SIZE/2;
+      const mouthOpen = (Date.now() % 400 < 200) ? 0.2 : 0;
+      const angles = [
+        [0.2 + mouthOpen, 1.8 - mouthOpen], // Right
+        [0.7 + mouthOpen, 2.3 - mouthOpen], // Down
+        [1.2 + mouthOpen, 2.8 - mouthOpen], // Left
+        [1.7 + mouthOpen, 3.3 - mouthOpen]  // Up
+      ];
+      ctx.moveTo(pcX, pcY);
+      ctx.arc(pcX, pcY, 8, angles[pacman.dir][0] * Math.PI, angles[pacman.dir][1] * Math.PI);
+      ctx.fill();
+
+      // Draw Ghosts
+      ghosts.forEach(g => {
+        ctx.fillStyle = g.state === 'frightened' ? '#2563eb' : g.color;
+        const gx = g.x * TILE_SIZE + 2;
+        const gy = g.y * TILE_SIZE + 2;
+        ctx.beginPath();
+        ctx.arc(gx + 8, gy + 8, 8, Math.PI, 0);
+        ctx.lineTo(gx + 16, gy + 16);
+        ctx.lineTo(gx, gy + 16);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(gx + 5, gy + 6, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(gx + 11, gy + 6, 2, 0, Math.PI * 2); ctx.fill();
+      });
+    };
+
+    let frameId: number;
+    const loop = () => {
+      update();
+      draw();
+      frameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [gameStatus]);
+
+  return (
+    <div className="flex flex-col items-center justify-center bg-slate-950 p-8 h-full rounded-b-3xl">
+      <div className="mb-6 flex gap-12 text-white font-outfit text-xl">
+        <div className="flex flex-col items-center">
+          <span className="text-slate-500 text-xs uppercase font-bold">Score</span>
+          <span className="font-black text-2xl text-yellow-400">{score}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-slate-500 text-xs uppercase font-bold">Lives</span>
+          <div className="flex gap-1 mt-1">
+            {Array.from({ length: lives }).map((_, i) => (
+              <div key={i} className="w-4 h-4 rounded-full bg-yellow-400" />
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="relative border-4 border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-blue-500/10">
+        <canvas ref={canvasRef} width={380} height={380} className="bg-black" />
+        
+        {gameStatus === 'gameover' && (
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center animate-in zoom-in duration-300">
+            <h2 className="text-4xl font-black text-red-500 mb-2 font-outfit">GAME OVER</h2>
+            <p className="text-white mb-6">Your final score: {score}</p>
+            <button 
+              onClick={() => location.reload()}
+              className="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+        
+        {gameStatus === 'win' && (
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center animate-in zoom-in duration-300">
+            <h2 className="text-4xl font-black text-emerald-500 mb-2 font-outfit">YOU WIN!</h2>
+            <p className="text-white mb-6">Score: {score}</p>
+            <button 
+              onClick={() => location.reload()}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-full font-bold transition-all"
+            >
+              Play Again
+            </button>
+          </div>
+        )}
+      </div>
+      
+      <p className="mt-8 text-slate-500 text-sm flex items-center gap-2">
+        <kbd className="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-slate-300">WASD</kbd> or <kbd className="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-slate-300">ARROWS</kbd> to move
+      </p>
+    </div>
+  );
+};
 
 // --- COMPONENTS ---
 
@@ -148,9 +464,16 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
     }
   };
   const reloadGame = () => {
+    if (game.iframeUrl.startsWith('internal:')) {
+      location.reload();
+      return;
+    }
     const iframe = document.getElementById('game-iframe') as HTMLIFrameElement;
     if (iframe) iframe.src = iframe.src;
   };
+
+  const isInternal = game.iframeUrl.startsWith('internal:');
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
@@ -165,7 +488,11 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
       </div>
       <div className="flex-1 bg-black overflow-hidden relative">
         <div ref={containerRef} className="w-full h-full relative bg-slate-950 flex items-center justify-center">
-          <iframe id="game-iframe" src={game.iframeUrl} className="w-full h-full border-0 bg-white" allowFullScreen loading="lazy" title={game.title} />
+          {isInternal ? (
+            <PacManGame onGameOver={(s) => console.log('Final Score:', s)} />
+          ) : (
+            <iframe id="game-iframe" src={game.iframeUrl} className="w-full h-full border-0 bg-white" allowFullScreen loading="lazy" title={game.title} />
+          )}
         </div>
       </div>
     </div>
@@ -203,7 +530,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Relative path for GitHub Pages compatibility
     fetch('./games.json')
       .then(res => res.json())
       .then(data => {

@@ -1,30 +1,21 @@
 
 [
   {
-    "id": "house-of-hazards",
-    "title": "House of Hazards",
-    "description": "Complete household chores while dodging ridiculous traps set by your opponents! A hilarious physics-based multiplayer challenge.",
-    "category": "Action",
-    "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop",
-    "iframeUrl": "./files/houseofhazards/index.html",
+    "id": "pac-man",
+    "title": "Pac-Man",
+    "description": "The classic arcade phenomenon, built natively for Habeeb Games. Navigate the maze, eat all the dots, and avoid the ghosts! Grab a power pellet to turn the tables on your spectral foes.",
+    "category": "Classic",
+    "thumbnail": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "internal:pacman",
     "isHot": true
   },
   {
-    "id": "retro-arcade",
-    "title": "Retro Arcade",
-    "description": "A collection of classic arcade spirits in one place. Jump, dodge, and score high!",
-    "category": "Classic",
-    "thumbnail": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop",
-    "iframeUrl": "./files/retro/index.html",
-    "isHot": false
-  },
-  {
-    "id": "puzzle-master",
-    "title": "Puzzle Master",
-    "description": "Test your logic and spatial reasoning with increasingly difficult puzzles.",
-    "category": "Puzzle",
-    "thumbnail": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop",
-    "iframeUrl": "./files/puzzle/index.html",
-    "isHot": false
+    "id": "basket-hoop",
+    "title": "Basket Hoop",
+    "description": "Show off your basketball skills! Aim, shoot, and score in this addictive sports challenge. Perfect your technique and climb the leaderboards.",
+    "category": "Sports",
+    "thumbnail": "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=800&auto=format&fit=crop",
+    "iframeUrl": "https://d11jzht7mj96rr.cloudfront.net/games/2024/construct/311/basket-hoop/index-gg.html",
+    "isHot": true
   }
 ]
